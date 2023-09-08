@@ -1,6 +1,12 @@
 const express = require('express')
 const jwt = require('jsonwebtoken');
+const gravatar = require('gravatar');
 const User = require("../service/schemas/users");
+const path = require('path');
+const fs = require('fs/promises');
+const Jimp = require('jimp');
+const multer = require('multer');
+const optimizeImage = require('../helpers/optimizeImage');
 require('dotenv').config()
 const secret = process.env.SECRET
 
@@ -16,7 +22,12 @@ const signUp = async (req, res, next) => {
             });
         }
         try {
-            const newUser = new User({ email });
+            const avatarURL = gravatar.url(email, { s: '200', r: 'pg', d: 'mm' });
+            const newUser = new User({
+                email,
+                password,
+                avatarURL,
+             });
             newUser.setPassword(password)
             await newUser.save()
             return res.status(201).json({
@@ -25,6 +36,7 @@ const signUp = async (req, res, next) => {
                 ResponseBody: {
                     user: {
                         email: email,
+                        avatarURL: avatarURL,
                         subscription: 'starter',
                     },
                 },
@@ -37,7 +49,6 @@ const signUp = async (req, res, next) => {
 const logIn = async (req, res) => {
     const { email, password } = req.body
     const user = await User.findOne({ email })
-
     if(!user || !user.validPassword(password)) {
         return res.status(400).json({
             status: 'Bad request',
@@ -53,11 +64,12 @@ const logIn = async (req, res) => {
         status: 'success',
         code: 200,
         data: {
+            id: user._id,
+            email: email,
             token,
         }
     })
 }
-
 
 const logOut = async ( req, res, next) => {
     const { _id } = req.user;
@@ -93,16 +105,36 @@ const currentUser = async (req, res) => {
         code: 200,
         ResponseBody: {
             email: email,
-            id: _id,
             subscription: 'starter'
         }
     })
 }
 
+const updateAvatar = async (req, res, next) => {
+    const avatarDir = path.join(process.cwd(), 'public/avatars');
+    const { path: tempUpload } = req.file;
+    const  { _id } = req.user
+    const imageName = `${_id}_avatar.png`;
+    const avatarPath = path.join(avatarDir, imageName)
+    await optimizeImage(tempUpload);
+
+    const avatarURL = `http://localhost:3000/avatars/${imageName}`;
+
+    await fs.rename(tempUpload, avatarPath);
+        
+         return res.status(200).json({
+                status: "success",
+                code: 200,
+                data: {
+                result: avatarURL,
+                }
+            })
+        }
 
 module.exports = {
     signUp,
     logIn,
     logOut,
-    currentUser
+    currentUser,
+    updateAvatar,
 }

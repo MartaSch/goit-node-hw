@@ -9,6 +9,7 @@
     "lint:fix": "eslint --fix **/*.js"
   },
   "dependencies": {
+    "@sendgrid/mail": "^7.7.0",
     "alert": "^5.1.4",
     "bcrypt": "^5.1.1",
     "cors": "2.8.5",
@@ -23,9 +24,11 @@
     "morgan": "1.10.0",
     "multer": "^1.4.5-lts.1",
     "ng-notifications-bar": "^0.0.16",
+    "nodemailer": "^6.9.5",
     "passport": "^0.6.0",
     "passport-jwt": "^4.0.1",
-    "push.js": "^1.0.12"
+    "push.js": "^1.0.12",
+    "uuid": "^9.0.0"
   },
   "devDependencies": {
     "cross-env": "^7.0.3",

@@ -54,6 +54,7 @@ const signUp = async (req, res, next) => {
 }
 
 const logIn = async (req, res) => {
+    const { verificationToken } = req.params;
     const { email, password } = req.body
     const user = await User.findOne({ email })
     if(!user || !user.validPassword(password)) {
@@ -63,6 +64,15 @@ const logIn = async (req, res) => {
             message: 'Incorrect login or password',
         })
     }
+    
+    if(user.verify !== true){
+        return res.status(400).json({
+            status: 'Bad request',
+            code: 400,
+            message: 'Sorry, your email address is not verified',
+        })
+    }
+    
     const payload = {
         id: user.id,
     }
